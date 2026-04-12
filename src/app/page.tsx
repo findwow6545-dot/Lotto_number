@@ -95,11 +95,11 @@ export default function LottoPage() {
         <div className="flex items-center justify-center gap-2 mb-2">
           <Trophy className="text-yellow-400 w-8 h-8" />
           <h1 className="text-4xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
-            PREMIUM LOTTO
+            PREMIUM AI LOTTO
           </h1>
         </div>
-        <p className="text-gray-400 text-sm md:text-base tracking-widest uppercase">
-          Your Intelligent Number Generator
+        <p className="text-gray-400 text-xs md:text-sm tracking-widest font-medium">
+          최신 AI를 활용한 로또번호 데이터 분석 생성기
         </p>
       </motion.div>
 

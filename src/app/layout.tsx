@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Premium Lotto - 스마트 로또 번호 생성기",
-  description: "최첨단 알고리즘과 수려한 디자인으로 제공되는 프리미엄 로또 번호 생성 서비스입니다. 행운의 5세트 번호를 지금 확인하세요.",
+  title: "PREMIUM AI LOTTO - AI 데이터 분석 로또 생성기",
+  description: "최신 AI를 활용한 로또번호 데이터 분석 및 생성 서비스입니다. 행운의 6+1 번호를 지금 확인하세요.",
   keywords: ["로또", "번호생성", "로또명당", "로또추첨", "복권"],
 };
 
