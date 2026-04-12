@@ -249,7 +249,7 @@ export default function LottoPage() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: setIdx * 0.1 }}
-                className="glass-card p-6 flex flex-col md:flex-row items-center justify-between gap-6"
+                className="glass-card p-3 md:p-6 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6"
               >
                   <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full">
                   <div className="w-5 h-5 md:w-10 md:h-10 rounded-full bg-white/5 flex items-center justify-center font-bold text-indigo-400 border border-white/10 shrink-0 text-[8px] md:text-base mb-1 md:mb-0">
