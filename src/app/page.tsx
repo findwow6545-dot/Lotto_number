@@ -170,26 +170,26 @@ export default function LottoPage() {
 
       {/* Generator UI Area */}
       <div className="w-full max-w-4xl flex flex-col gap-6">
-        <div className="flex justify-between items-center px-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center px-4 gap-4">
           <div className="flex items-center gap-2 text-indigo-300">
-            <Sparkles size={18} />
-            <span className="font-semibold">오늘의 추천 번호 (5세트)</span>
+            <Sparkles size={16} className="shrink-0" />
+            <span className="font-bold text-sm md:text-base whitespace-nowrap">오늘의 추천 번호 (5세트)</span>
           </div>
-          <div className="flex items-center gap-3 z-10">
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end z-10">
             <button 
               onClick={handleShare}
-              className="flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 rounded-full font-bold transition-all border border-white/10"
+              className="flex items-center justify-center w-10 h-10 md:w-auto md:px-4 md:py-2.5 bg-white/10 hover:bg-white/20 rounded-full font-bold transition-all border border-white/10 shrink-0"
               title="번호 공유하기"
             >
               <Share2 size={18} />
-              <span className="hidden md:inline text-sm">공유</span>
+              <span className="hidden md:inline text-sm ml-2">공유</span>
             </button>
             <button 
               onClick={handleGenerate}
               disabled={isGenerating}
-              className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-full font-bold transition-all shadow-lg active:scale-95 disabled:opacity-50"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-full font-bold transition-all shadow-lg active:scale-95 disabled:opacity-50 text-sm md:text-base whitespace-nowrap"
             >
-              <RefreshCw className={isGenerating ? "animate-spin" : ""} size={18} />
+              <RefreshCw className={isGenerating ? "animate-spin" : ""} size={16} />
               {isGenerating ? "추첨 중..." : "다시 생성"}
             </button>
           </div>
@@ -251,11 +251,11 @@ export default function LottoPage() {
                 transition={{ delay: setIdx * 0.1 }}
                 className="glass-card p-6 flex flex-col md:flex-row items-center justify-between gap-6"
               >
-                  <div className="flex flex-col md:flex-row items-center gap-4 w-full">
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/5 flex items-center justify-center font-bold text-indigo-400 border border-white/10 shrink-0 text-xs md:text-base">
+                  <div className="flex flex-col md:flex-row items-center gap-3 md:gap-4 w-full">
+                  <div className="w-6 h-6 md:w-10 md:h-10 rounded-full bg-white/5 flex items-center justify-center font-bold text-indigo-400 border border-white/10 shrink-0 text-[10px] md:text-base">
                     {setIdx + 1}
                   </div>
-                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-1.5 md:gap-3">
+                  <div className="flex flex-nowrap items-center justify-center md:justify-start gap-1 md:gap-3 w-full overflow-hidden">
                     {set.slice(0, 6).map((num, numIdx) => (
                       <motion.div
                         key={numIdx}
@@ -267,12 +267,12 @@ export default function LottoPage() {
                           damping: 20,
                           delay: (setIdx * 0.1) + (numIdx * 0.05) 
                         }}
-                        className={`lotto-ball w-8 h-8 md:w-12 md:h-12 text-xs md:text-base ${getBallColorClass(num)}`}
+                        className={`lotto-ball w-8 h-8 md:w-12 md:h-12 text-[10px] md:text-base shrink-0 ${getBallColorClass(num)}`}
                       >
                         {num}
                       </motion.div>
                     ))}
-                    <span className="text-gray-600 font-bold mx-0.5">+</span>
+                    <span className="text-gray-600 font-bold mx-0.5 shrink-0">+</span>
                     <motion.div
                       initial={{ scale: 0, rotate: -180 }}
                       animate={{ scale: 1, rotate: 0 }}
@@ -282,7 +282,7 @@ export default function LottoPage() {
                         damping: 20,
                         delay: (setIdx * 0.1) + (6 * 0.05) 
                       }}
-                      className={`lotto-ball w-8 h-8 md:w-12 md:h-12 text-xs md:text-base ${getBallColorClass(set[6])} border-2 border-white/20`}
+                      className={`lotto-ball w-8 h-8 md:w-12 md:h-12 text-[10px] md:text-base shrink-0 ${getBallColorClass(set[6])} border-2 border-white/20`}
                     >
                       {set[6]}
                     </motion.div>
