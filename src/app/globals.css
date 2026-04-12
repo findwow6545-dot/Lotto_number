@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0f0f1a;
+  --foreground: #ededed;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  min-height: 100vh;
+  background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0f0f1a 100%);
+  margin: 0;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.82);
+  border-radius: 24px;
+}
+
+.lotto-ball {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  font-weight: 800;
+  font-size: 1.25rem;
+  box-shadow: inset -4px -4px 8px rgba(0,0,0,0.4), inset 4px 4px 8px rgba(255,255,255,0.2), 0 10px 20px rgba(0,0,0,0.3);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: default;
+}
+
+.lotto-ball:hover {
+  transform: scale(1.15) rotate(10deg);
+}
+
+/* Lotto Ball Colors based on range */
+.ball-yellow { background: radial-gradient(circle at 35% 35%, #fde047, #a16207); color: #000; text-shadow: 0 1px 1px rgba(255,255,255,0.3); }
+.ball-blue { background: radial-gradient(circle at 35% 35%, #60a5fa, #1e40af); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+.ball-red { background: radial-gradient(circle at 35% 35%, #f87171, #991b1b); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+.ball-gray { background: radial-gradient(circle at 35% 35%, #9ca3af, #374151); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+.ball-green { background: radial-gradient(circle at 35% 35%, #4ade80, #166534); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+
+@keyframes glow {
+  0% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.2); }
+  50% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.5); }
+  100% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.2); }
+}
+
+.animate-glow {
+  animation: glow 3s infinite ease-in-out;
+}
