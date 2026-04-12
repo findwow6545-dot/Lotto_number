@@ -116,12 +116,12 @@ export default function LottoPage() {
         className="text-center mb-12"
       >
         <div className="flex items-center justify-center gap-2 mb-2">
-          <Trophy className="text-yellow-400 w-8 h-8" />
-          <h1 className="text-4xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
+          <Trophy className="text-yellow-400 w-6 h-6 md:w-8 md:h-8" />
+          <h1 className="text-3xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
             PREMIUM AI LOTTO
           </h1>
         </div>
-        <p className="text-gray-400 text-xs md:text-sm tracking-widest font-medium">
+        <p className="text-gray-400 text-[10px] md:text-sm tracking-widest font-medium px-4">
           최신 AI를 활용한 로또번호 데이터 분석 생성기
         </p>
       </motion.div>
@@ -251,11 +251,11 @@ export default function LottoPage() {
                 transition={{ delay: setIdx * 0.1 }}
                 className="glass-card p-6 flex flex-col md:flex-row items-center justify-between gap-6"
               >
-                  <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center font-bold text-indigo-400 border border-white/10 shrink-0">
+                  <div className="flex flex-col md:flex-row items-center gap-4 w-full">
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/5 flex items-center justify-center font-bold text-indigo-400 border border-white/10 shrink-0 text-xs md:text-base">
                     {setIdx + 1}
                   </div>
-                  <div className="flex flex-wrap items-center gap-2 md:gap-3">
+                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-1.5 md:gap-3">
                     {set.slice(0, 6).map((num, numIdx) => (
                       <motion.div
                         key={numIdx}
@@ -267,12 +267,12 @@ export default function LottoPage() {
                           damping: 20,
                           delay: (setIdx * 0.1) + (numIdx * 0.05) 
                         }}
-                        className={`lotto-ball ${getBallColorClass(num)} scale-90 md:scale-100`}
+                        className={`lotto-ball w-8 h-8 md:w-12 md:h-12 text-xs md:text-base ${getBallColorClass(num)}`}
                       >
                         {num}
                       </motion.div>
                     ))}
-                    <span className="text-gray-600 font-bold">+</span>
+                    <span className="text-gray-600 font-bold mx-0.5">+</span>
                     <motion.div
                       initial={{ scale: 0, rotate: -180 }}
                       animate={{ scale: 1, rotate: 0 }}
@@ -282,7 +282,7 @@ export default function LottoPage() {
                         damping: 20,
                         delay: (setIdx * 0.1) + (6 * 0.05) 
                       }}
-                      className={`lotto-ball ${getBallColorClass(set[6])} scale-90 md:scale-100 border-2 border-white/20`}
+                      className={`lotto-ball w-8 h-8 md:w-12 md:h-12 text-xs md:text-base ${getBallColorClass(set[6])} border-2 border-white/20`}
                     >
                       {set[6]}
                     </motion.div>
@@ -371,9 +371,10 @@ export default function LottoPage() {
         </div>
       </div>
 
-      <footer className="mt-20 text-gray-600 text-xs text-center border-t border-white/5 pt-8 w-full max-w-2xl">
-        <p>© 2026 Premium Lotto Engine. All rights reserved.</p>
-        <p className="mt-2">본 서비스는 인공지능에 의해 생성된 번호를 제공하며, 당첨을 보장하지 않습니다.</p>
+      <footer className="mt-16 mb-8 text-gray-600 text-[10px] md:text-xs text-center border-t border-white/5 pt-8 w-full max-w-2xl px-6">
+        <p className="font-bold text-indigo-400/80 mb-2 tracking-widest uppercase">Developer: ParkJiHwan</p>
+        <p>© 2026 PREMIUM AI LOTTO. All rights reserved.</p>
+        <p className="mt-2 text-gray-700">본 서비스는 인공지능에 의해 생성된 번호를 제공하며, 당첨을 보장하지 않습니다.</p>
       </footer>
     </main>
   );
