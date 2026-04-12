@@ -80,6 +80,29 @@ export default function LottoPage() {
     }
   };
 
+  const handleShare = async () => {
+    if (sets.length === 0) return;
+    
+    const shareText = `[PREMIUM AI LOTTO] 행운의 추천 번호 도착!\n\n` + 
+      sets.map((set, i) => `세트 ${i+1}: ${set.slice(0, 6).join(', ')} + [${set[6]}]`).join('\n') + 
+      `\n\n모두에게 행운이 함께하기를 바랍니다! ✨`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'PREMIUM AI LOTTO 추천 번호',
+          text: shareText,
+          url: window.location.href,
+        });
+      } catch (err) {
+        console.error('Share failed:', err);
+      }
+    } else {
+      await navigator.clipboard.writeText(shareText);
+      alert('번호 리스트가 클립보드에 복사되었습니다! 원하는 곳에 붙여넣어 공유하세요.');
+    }
+  };
+
   useEffect(() => {
     handleGenerate();
   }, []);
@@ -152,14 +175,24 @@ export default function LottoPage() {
             <Sparkles size={18} />
             <span className="font-semibold">오늘의 추천 번호 (5세트)</span>
           </div>
-          <button 
-            onClick={handleGenerate}
-            disabled={isGenerating}
-            className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-full font-bold transition-all shadow-lg active:scale-95 disabled:opacity-50 z-10"
-          >
-            <RefreshCw className={isGenerating ? "animate-spin" : ""} size={18} />
-            {isGenerating ? "추첨 중..." : "다시 생성"}
-          </button>
+          <div className="flex items-center gap-3 z-10">
+            <button 
+              onClick={handleShare}
+              className="flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 rounded-full font-bold transition-all border border-white/10"
+              title="번호 공유하기"
+            >
+              <Share2 size={18} />
+              <span className="hidden md:inline text-sm">공유</span>
+            </button>
+            <button 
+              onClick={handleGenerate}
+              disabled={isGenerating}
+              className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-full font-bold transition-all shadow-lg active:scale-95 disabled:opacity-50"
+            >
+              <RefreshCw className={isGenerating ? "animate-spin" : ""} size={18} />
+              {isGenerating ? "추첨 중..." : "다시 생성"}
+            </button>
+          </div>
         </div>
 
         {/* Dynamic Lotto Machine Animation */}
@@ -255,9 +288,6 @@ export default function LottoPage() {
                     </motion.div>
                   </div>
                 </div>
-                <button className="text-gray-500 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5">
-                  <Share2 size={20} />
-                </button>
               </motion.div>
             ))}
           </AnimatePresence>
@@ -321,7 +351,7 @@ export default function LottoPage() {
                           ))}
                           <span className="text-[10px] text-gray-600">+</span>
                           <span className="text-[10px] w-6 h-6 flex items-center justify-center rounded-full bg-indigo-500/20 text-indigo-100 border border-indigo-500/30">
-                            {(Object.values(record.sets)[0] as number[])[6]}
+                            {(Object.values(record.sets)[0] as number[])[6] || "?"}
                           </span>
                         </div>
                         <span className="text-[10px] text-indigo-400 font-medium font-bold">
