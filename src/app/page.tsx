@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, RefreshCw, Trophy, History, Share2 } from 'lucide-react';
+import { Sparkles, RefreshCw, Trophy, History, Share2, CircleSlash } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp, query, orderBy, limit, getDocs } from 'firebase/firestore';
 
@@ -27,18 +27,21 @@ const getBallColorClass = (n: number) => {
 export default function LottoPage() {
   const [sets, setSets] = useState<number[][]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isDrawing, setIsDrawing] = useState(false); // New: for machine animation
   const [history, setHistory] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
+    setIsDrawing(true); // Start machine animation
     setError(null);
     
-    // Simulate thinking/premium feel
+    // Simulate drawing animation duration (e.g. 2.5 seconds)
     setTimeout(async () => {
       const newSets = Array.from({ length: 5 }, () => generateLottoNumbers());
       setSets(newSets);
+      setIsDrawing(false); // Stop machine animation
       setIsGenerating(false);
 
       // Firebase Log (Optional/Logical Design)
@@ -61,7 +64,7 @@ export default function LottoPage() {
         console.error("Firebase log error:", e);
         setError("Firebase 저장 실패: " + (e.message || "권한 또는 설정 오류"));
       }
-    }, 800);
+    }, 2800);
   };
 
   const fetchHistory = async () => {
@@ -109,7 +112,7 @@ export default function LottoPage() {
         </motion.div>
       )}
 
-      {/* Main Generator Action */}
+      {/* Generator UI Area */}
       <div className="w-full max-w-4xl flex flex-col gap-6">
         <div className="flex justify-between items-center px-4">
           <div className="flex items-center gap-2 text-indigo-300">
@@ -119,17 +122,62 @@ export default function LottoPage() {
           <button 
             onClick={handleGenerate}
             disabled={isGenerating}
-            className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-full font-bold transition-all shadow-lg active:scale-95 disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-full font-bold transition-all shadow-lg active:scale-95 disabled:opacity-50 z-10"
           >
             <RefreshCw className={isGenerating ? "animate-spin" : ""} size={18} />
             {isGenerating ? "추첨 중..." : "다시 생성"}
           </button>
         </div>
 
-        {/* Lotto Sets Grid */}
-        <div className="grid grid-cols-1 gap-4">
-          <AnimatePresence mode="wait">
-            {!isGenerating && sets.map((set, setIdx) => (
+        {/* Dynamic Lotto Machine Animation */}
+        <AnimatePresence>
+          {isDrawing && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="flex justify-center items-center py-20"
+            >
+              <div className="relative w-64 h-64 border-4 border-indigo-500/30 rounded-full flex items-center justify-center bg-black/40 shadow-[0_0_50px_rgba(99,102,241,0.2)] overflow-hidden">
+                <motion.div 
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                  className="absolute inset-0 border-t-4 border-indigo-400 opacity-50 rounded-full"
+                />
+                
+                {/* Simulated Bouncing Small Balls */}
+                {Array.from({ length: 20 }).map((_, i) => (
+                  <motion.div
+                    key={i}
+                    animate={{
+                      x: [0, Math.random() * 100 - 50, Math.random() * 100 - 50, 0],
+                      y: [0, Math.random() * 100 - 50, Math.random() * 100 - 50, 0],
+                    }}
+                    transition={{
+                      repeat: Infinity,
+                      duration: 0.5 + Math.random(),
+                      ease: "easeInOut"
+                    }}
+                    className={`absolute w-3 h-3 rounded-full opacity-70 ${
+                      ["bg-yellow-400", "bg-blue-400", "bg-red-400", "bg-green-400"][i % 4]
+                    }`}
+                  />
+                ))}
+                
+                <div className="z-10 text-center">
+                  <div className="text-white font-black text-2xl tracking-tighter animate-pulse">LUCKY DRAW</div>
+                  <div className="text-indigo-400 text-[10px] font-bold mt-1">RANDOMIZING...</div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Lotto Sets Grid (Only visible when not drawing) */}
+        {!isDrawing && (
+          <div className="grid grid-cols-1 gap-4">
+            <AnimatePresence mode="wait">
+              {!isGenerating && sets.map((set, setIdx) => (
               <motion.div
                 key={setIdx + JSON.stringify(set)}
                 initial={{ opacity: 0, x: -20 }}
@@ -183,8 +231,6 @@ export default function LottoPage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   key={i} 
-                  onMouseEnter={() => setExpandedIndex(i)}
-                  onMouseLeave={() => setExpandedIndex(null)}
                   onClick={() => setExpandedIndex(expandedIndex === i ? null : i)}
                   className="bg-white/5 rounded-2xl p-4 border border-white/5 flex flex-col gap-3 cursor-pointer transition-all hover:bg-white/10 hover:border-indigo-500/30"
                 >
@@ -226,8 +272,8 @@ export default function LottoPage() {
                             </span>
                           ))}
                         </div>
-                        <span className="text-[10px] text-indigo-400 animate-pulse font-medium">
-                          + {Object.keys(record.sets).length - 1}개 세트 더보기 (마우스 올리기)
+                        <span className="text-[10px] text-indigo-400 font-medium font-bold">
+                          + {Object.keys(record.sets).length - 1}개 세트 상세 보기 (클릭)
                         </span>
                       </div>
                     )}
