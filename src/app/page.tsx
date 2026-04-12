@@ -28,9 +28,11 @@ export default function LottoPage() {
   const [sets, setSets] = useState<number[][]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [history, setHistory] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
+    setError(null);
     
     // Simulate thinking/premium feel
     setTimeout(async () => {
@@ -39,14 +41,21 @@ export default function LottoPage() {
       setIsGenerating(false);
 
       // Firebase Log (Optional/Logical Design)
+      // Firestore nested array issue fix: Convert to object
+      const setsObject = newSets.reduce((acc, set, idx) => {
+        acc[`set${idx + 1}`] = set;
+        return acc;
+      }, {} as any);
+
       try {
         await addDoc(collection(db, "lotto_history"), {
-          sets: newSets,
+          sets: setsObject,
           timestamp: serverTimestamp(),
         });
-        fetchHistory();
-      } catch (e) {
+        await fetchHistory();
+      } catch (e: any) {
         console.error("Firebase log error:", e);
+        setError("Firebase 저장 실패: " + (e.message || "권한 또는 설정 오류"));
       }
     }, 800);
   };
@@ -84,6 +93,17 @@ export default function LottoPage() {
           Your Intelligent Number Generator
         </p>
       </motion.div>
+
+      {/* Error Message */}
+      {error && (
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="mb-6 p-4 bg-red-500/20 border border-red-500/50 text-red-200 rounded-xl text-sm"
+        >
+          ⚠️ {error}
+        </motion.div>
+      )}
 
       {/* Main Generator Action */}
       <div className="w-full max-w-4xl flex flex-col gap-6">
@@ -165,12 +185,13 @@ export default function LottoPage() {
                     <span>{record.timestamp?.toDate().toLocaleString() || "방금 전"}</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {record.sets[0].map((n: number, j: number) => (
+                    {/* Convert object back to arrays for display */}
+                    {Object.values(record.sets).length > 0 && (Object.values(record.sets)[0] as number[]).map((n: number, j: number) => (
                       <span key={j} className="text-xs px-2 py-1 rounded-md bg-white/10 text-indigo-200">
                         {n}
                       </span>
                     ))}
-                    <span className="text-xs text-gray-600 self-center">...외 {record.sets.length - 1}세트</span>
+                    <span className="text-xs text-gray-600 self-center">...외 {Object.keys(record.sets).length - 1}세트</span>
                   </div>
                 </motion.div>
               ))
