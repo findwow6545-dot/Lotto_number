@@ -29,6 +29,7 @@ export default function LottoPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [history, setHistory] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -178,24 +179,59 @@ export default function LottoPage() {
             {history.length > 0 ? (
               history.map((record, i) => (
                 <motion.div 
+                  layout
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   key={i} 
-                  className="bg-white/5 rounded-xl p-4 border border-white/5 flex flex-col gap-2"
+                  onMouseEnter={() => setExpandedIndex(i)}
+                  onMouseLeave={() => setExpandedIndex(null)}
+                  onClick={() => setExpandedIndex(expandedIndex === i ? null : i)}
+                  className="bg-white/5 rounded-2xl p-4 border border-white/5 flex flex-col gap-3 cursor-pointer transition-all hover:bg-white/10 hover:border-indigo-500/30"
                 >
-                  <div className="text-xs text-gray-500 flex justify-between">
-                    <span>기록 #{history.length - i}</span>
+                  <div className="text-xs text-gray-400 flex justify-between items-center">
+                    <span className="font-bold flex items-center gap-1">
+                      <Trophy size={12} className="text-yellow-500" /> 기록 #{history.length - i}
+                    </span>
                     <span>{record.timestamp?.toDate().toLocaleString() || "방금 전"}</span>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {/* Convert object back to arrays for display */}
-                    {Object.values(record.sets).length > 0 && (Object.values(record.sets)[0] as number[]).map((n: number, j: number) => (
-                      <span key={j} className="text-xs px-2 py-1 rounded-md bg-white/10 text-indigo-200">
-                        {n}
-                      </span>
-                    ))}
-                    <span className="text-xs text-gray-600 self-center">...외 {Object.keys(record.sets).length - 1}세트</span>
-                  </div>
+
+                  <AnimatePresence>
+                    {expandedIndex === i ? (
+                      <motion.div 
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="flex flex-col gap-3 overflow-hidden"
+                      >
+                        {Object.entries(record.sets).map(([key, set]: [string, any], setIdx) => (
+                          <div key={key} className="flex flex-col gap-1.5 p-2 rounded-lg bg-black/20">
+                            <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-tighter">SET {setIdx + 1}</span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {set.map((n: number, j: number) => (
+                                <span key={j} className={`w-7 h-7 flex items-center justify-center rounded-full text-[10px] font-bold ${getBallColorClass(n)} shadow-sm`}>
+                                  {n}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </motion.div>
+                    ) : (
+                      <div className="flex flex-wrap gap-2 items-center">
+                        {/* Preview of first set only */}
+                        <div className="flex gap-1">
+                          {(Object.values(record.sets)[0] as number[]).map((n: number, j: number) => (
+                            <span key={j} className="text-[10px] w-6 h-6 flex items-center justify-center rounded-full bg-white/10 text-indigo-200 border border-white/5">
+                              {n}
+                            </span>
+                          ))}
+                        </div>
+                        <span className="text-[10px] text-indigo-400 animate-pulse font-medium">
+                          + {Object.keys(record.sets).length - 1}개 세트 더보기 (마우스 올리기)
+                        </span>
+                      </div>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
               ))
             ) : (
