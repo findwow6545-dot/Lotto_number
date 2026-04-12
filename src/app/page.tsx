@@ -215,6 +215,7 @@ export default function LottoPage() {
             ))}
           </AnimatePresence>
         </div>
+        )}
 
         {/* History / Info Section */}
         <div className="mt-12 glass-card p-8 border-indigo-500/20 animate-glow">
