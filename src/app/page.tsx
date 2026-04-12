@@ -146,12 +146,39 @@ export default function LottoPage() {
 
         {/* History / Info Section */}
         <div className="mt-12 glass-card p-8 border-indigo-500/20 animate-glow">
-          <div className="flex items-center gap-2 mb-4 text-indigo-300 font-bold">
+          <div className="flex items-center gap-2 mb-6 text-indigo-300 font-bold">
             <History size={20} />
-            <span>최근 생성 이력</span>
+            <span>최근 생성 이력 (실시간 Firebase 연동)</span>
           </div>
-          <div className="text-gray-500 text-sm text-center py-4">
-            Firebase를 통해 과거에 번호가 안전하게 저장됩니다. (설정 필요)
+          
+          <div className="flex flex-col gap-4">
+            {history.length > 0 ? (
+              history.map((record, i) => (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  key={i} 
+                  className="bg-white/5 rounded-xl p-4 border border-white/5 flex flex-col gap-2"
+                >
+                  <div className="text-xs text-gray-500 flex justify-between">
+                    <span>기록 #{history.length - i}</span>
+                    <span>{record.timestamp?.toDate().toLocaleString() || "방금 전"}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {record.sets[0].map((n: number, j: number) => (
+                      <span key={j} className="text-xs px-2 py-1 rounded-md bg-white/10 text-indigo-200">
+                        {n}
+                      </span>
+                    ))}
+                    <span className="text-xs text-gray-600 self-center">...외 {record.sets.length - 1}세트</span>
+                  </div>
+                </motion.div>
+              ))
+            ) : (
+              <div className="text-gray-500 text-sm text-center py-4">
+                아직 저장된 이력이 없습니다. 번호를 생성해 보세요!
+              </div>
+            )}
           </div>
         </div>
       </div>
