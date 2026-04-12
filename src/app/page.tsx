@@ -108,7 +108,7 @@ export default function LottoPage() {
   }, []);
 
   return (
-    <main className="min-h-screen p-4 md:p-8 flex flex-col items-center">
+    <main className="min-h-screen px-2 py-4 md:p-8 flex flex-col items-center">
       {/* Header Section */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
@@ -251,11 +251,11 @@ export default function LottoPage() {
                 transition={{ delay: setIdx * 0.1 }}
                 className="glass-card p-6 flex flex-col md:flex-row items-center justify-between gap-6"
               >
-                  <div className="flex flex-col md:flex-row items-center gap-3 md:gap-4 w-full">
-                  <div className="w-6 h-6 md:w-10 md:h-10 rounded-full bg-white/5 flex items-center justify-center font-bold text-indigo-400 border border-white/10 shrink-0 text-[10px] md:text-base">
+                  <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full">
+                  <div className="w-5 h-5 md:w-10 md:h-10 rounded-full bg-white/5 flex items-center justify-center font-bold text-indigo-400 border border-white/10 shrink-0 text-[8px] md:text-base mb-1 md:mb-0">
                     {setIdx + 1}
                   </div>
-                  <div className="flex flex-nowrap items-center justify-center md:justify-start gap-1 md:gap-3 w-full overflow-hidden">
+                  <div className="flex flex-nowrap items-center justify-center md:justify-start gap-0.5 md:gap-3 w-full">
                     {set.slice(0, 6).map((num, numIdx) => (
                       <motion.div
                         key={numIdx}
@@ -267,12 +267,12 @@ export default function LottoPage() {
                           damping: 20,
                           delay: (setIdx * 0.1) + (numIdx * 0.05) 
                         }}
-                        className={`lotto-ball w-8 h-8 md:w-12 md:h-12 text-[10px] md:text-base shrink-0 ${getBallColorClass(num)}`}
+                        className={`lotto-ball w-7 h-7 md:w-12 md:h-12 text-[10px] md:text-base shrink-0 ${getBallColorClass(num)}`}
                       >
                         {num}
                       </motion.div>
                     ))}
-                    <span className="text-gray-600 font-bold mx-0.5 shrink-0">+</span>
+                    <span className="text-gray-600 font-bold mx-0 shrink-0 text-xs">+</span>
                     <motion.div
                       initial={{ scale: 0, rotate: -180 }}
                       animate={{ scale: 1, rotate: 0 }}
@@ -282,7 +282,7 @@ export default function LottoPage() {
                         damping: 20,
                         delay: (setIdx * 0.1) + (6 * 0.05) 
                       }}
-                      className={`lotto-ball w-8 h-8 md:w-12 md:h-12 text-[10px] md:text-base shrink-0 ${getBallColorClass(set[6])} border-2 border-white/20`}
+                      className={`lotto-ball w-7 h-7 md:w-12 md:h-12 text-[10px] md:text-base shrink-0 ${getBallColorClass(set[6])} border-2 border-white/20`}
                     >
                       {set[6]}
                     </motion.div>
