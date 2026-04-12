@@ -9,11 +9,13 @@ import { collection, addDoc, serverTimestamp, query, orderBy, limit, getDocs } f
 // Lotto number generation logic
 const generateLottoNumbers = () => {
   const numbers: number[] = [];
-  while (numbers.length < 6) {
+  while (numbers.length < 7) { // Change to 7 (6 + 1 bonus)
     const r = Math.floor(Math.random() * 45) + 1;
     if (numbers.indexOf(r) === -1) numbers.push(r);
   }
-  return numbers.sort((a, b) => a - b);
+  // Sort first 6, keep 7th as bonus
+  const main = numbers.slice(0, 6).sort((a, b) => a - b);
+  return [...main, numbers[6]];
 };
 
 const getBallColorClass = (n: number) => {
@@ -101,6 +103,37 @@ export default function LottoPage() {
         </p>
       </motion.div>
 
+      {/* Latest Draw Info Section */}
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-4xl glass-card p-6 mb-8 border-yellow-500/20 relative overflow-hidden"
+      >
+        <div className="absolute top-0 right-0 p-4 opacity-10">
+          <Trophy size={80} className="text-yellow-500" />
+        </div>
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6 relative z-10">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="bg-yellow-500 text-black px-2 py-0.5 rounded text-[10px] font-black uppercase">Latest Draw</span>
+              <h2 className="text-xl font-bold">제 1219회 당첨 결과</h2>
+            </div>
+            <p className="text-xs text-gray-400">추첨일: 2026.04.11 | 1등 당첨금: <span className="text-yellow-400 font-bold">25억 8백만원</span> (12명)</p>
+          </div>
+          <div className="flex items-center gap-2">
+            {[1, 2, 15, 28, 39, 45].map(n => (
+              <span key={n} className={`w-8 h-8 md:w-10 md:h-10 text-xs md:text-sm flex items-center justify-center rounded-full font-bold shadow-lg ${getBallColorClass(n)}`}>
+                {n}
+              </span>
+            ))}
+            <span className="text-gray-500 font-bold mx-1">+</span>
+            <span className="w-8 h-8 md:w-10 md:h-10 text-xs md:text-sm flex items-center justify-center rounded-full font-bold shadow-lg ball-gray">
+              31
+            </span>
+          </div>
+        </div>
+      </motion.div>
+
       {/* Error Message */}
       {error && (
         <motion.div 
@@ -185,12 +218,12 @@ export default function LottoPage() {
                 transition={{ delay: setIdx * 0.1 }}
                 className="glass-card p-6 flex flex-col md:flex-row items-center justify-between gap-6"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center font-bold text-indigo-400 border border-white/10">
+                  <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center font-bold text-indigo-400 border border-white/10 shrink-0">
                     {setIdx + 1}
                   </div>
-                  <div className="flex gap-2 md:gap-4">
-                    {set.map((num, numIdx) => (
+                  <div className="flex flex-wrap items-center gap-2 md:gap-3">
+                    {set.slice(0, 6).map((num, numIdx) => (
                       <motion.div
                         key={numIdx}
                         initial={{ scale: 0, rotate: -180 }}
@@ -201,11 +234,25 @@ export default function LottoPage() {
                           damping: 20,
                           delay: (setIdx * 0.1) + (numIdx * 0.05) 
                         }}
-                        className={`lotto-ball ${getBallColorClass(num)}`}
+                        className={`lotto-ball ${getBallColorClass(num)} scale-90 md:scale-100`}
                       >
                         {num}
                       </motion.div>
                     ))}
+                    <span className="text-gray-600 font-bold">+</span>
+                    <motion.div
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ 
+                        type: "spring", 
+                        stiffness: 260, 
+                        damping: 20,
+                        delay: (setIdx * 0.1) + (6 * 0.05) 
+                      }}
+                      className={`lotto-ball ${getBallColorClass(set[6])} scale-90 md:scale-100 border-2 border-white/20`}
+                    >
+                      {set[6]}
+                    </motion.div>
                   </div>
                 </div>
                 <button className="text-gray-500 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5">
@@ -266,12 +313,16 @@ export default function LottoPage() {
                     ) : (
                       <div className="flex flex-wrap gap-2 items-center">
                         {/* Preview of first set only */}
-                        <div className="flex gap-1">
-                          {(Object.values(record.sets)[0] as number[]).map((n: number, j: number) => (
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {(Object.values(record.sets)[0] as number[]).slice(0, 6).map((n: number, j: number) => (
                             <span key={j} className="text-[10px] w-6 h-6 flex items-center justify-center rounded-full bg-white/10 text-indigo-200 border border-white/5">
                               {n}
                             </span>
                           ))}
+                          <span className="text-[10px] text-gray-600">+</span>
+                          <span className="text-[10px] w-6 h-6 flex items-center justify-center rounded-full bg-indigo-500/20 text-indigo-100 border border-indigo-500/30">
+                            {(Object.values(record.sets)[0] as number[])[6]}
+                          </span>
                         </div>
                         <span className="text-[10px] text-indigo-400 font-medium font-bold">
                           + {Object.keys(record.sets).length - 1}개 세트 상세 보기 (클릭)
