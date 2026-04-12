@@ -48,11 +48,14 @@ export default function LottoPage() {
       }, {} as any);
 
       try {
+        // 1. Get current history first (before adding new one)
+        await fetchHistory();
+
+        // 2. Add new doc to DB
         await addDoc(collection(db, "lotto_history"), {
           sets: setsObject,
           timestamp: serverTimestamp(),
         });
-        await fetchHistory();
       } catch (e: any) {
         console.error("Firebase log error:", e);
         setError("Firebase 저장 실패: " + (e.message || "권한 또는 설정 오류"));
@@ -168,7 +171,7 @@ export default function LottoPage() {
         <div className="mt-12 glass-card p-8 border-indigo-500/20 animate-glow">
           <div className="flex items-center gap-2 mb-6 text-indigo-300 font-bold">
             <History size={20} />
-            <span>최근 생성 이력 (실시간 Firebase 연동)</span>
+            <span>과거 생성 이력 (가장 최근 3회 기록)</span>
           </div>
           
           <div className="flex flex-col gap-4">
