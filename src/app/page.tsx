@@ -33,6 +33,33 @@ export default function LottoPage() {
   const [history, setHistory] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [nextDrawDate, setNextDrawDate] = useState<string>('');
+
+  useEffect(() => {
+    const calculateNextDraw = () => {
+      const now = new Date();
+      const currentDay = now.getDay();
+      const nextSat = new Date(now);
+      let daysUntilSat = (6 - currentDay + 7) % 7;
+      
+      if (daysUntilSat === 0) {
+        const drawTime = new Date(now);
+        drawTime.setHours(20, 45, 0, 0);
+        if (now > drawTime) {
+          daysUntilSat = 7;
+        }
+      }
+      
+      nextSat.setDate(now.getDate() + daysUntilSat);
+      nextSat.setHours(20, 45, 0, 0);
+      
+      return nextSat.toLocaleString('ko-KR', {
+        year: 'numeric', month: '2-digit', day: '2-digit', 
+        weekday: 'short', hour: '2-digit', minute: '2-digit'
+      });
+    };
+    setNextDrawDate(calculateNextDraw());
+  }, []);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -142,6 +169,10 @@ export default function LottoPage() {
               <h2 className="text-xl font-bold">제 1219회 당첨 결과</h2>
             </div>
             <p className="text-xs text-gray-400">추첨일: 2026.04.11 | 1등 당첨금: <span className="text-yellow-400 font-bold">25억 8백만원</span> (12명)</p>
+            <div className="mt-2 flex items-center gap-1.5 overflow-hidden">
+              <span className="bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded text-[9px] font-bold border border-indigo-500/30">NEXT DRAW</span>
+              <p className="text-[10px] md:text-xs text-indigo-300 font-medium">다음회차 추첨일시: <span className="text-white font-bold">{nextDrawDate}</span></p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {[1, 2, 15, 28, 39, 45].map(n => (
@@ -292,6 +323,25 @@ export default function LottoPage() {
             ))}
           </AnimatePresence>
         </div>
+        )}
+
+        {/* Share with Friend Text Button */}
+        {!isDrawing && sets.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex justify-center -mt-2"
+          >
+            <button 
+              onClick={handleShare}
+              className="text-gray-400 hover:text-indigo-400 font-bold flex items-center gap-2 transition-all p-4 text-xs md:text-sm group"
+            >
+              <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-indigo-500/20 transition-all">
+                <Share2 size={14} className="group-hover:scale-110 transition-transform" />
+              </div>
+              <span className="border-b border-transparent group-hover:border-indigo-400 transition-all">친구에게 공유하기</span>
+            </button>
+          </motion.div>
         )}
 
         {/* History / Info Section */}
