@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, RefreshCw, Trophy, History, Share2, CircleSlash } from 'lucide-react';
+import { Sparkles, RefreshCw, Trophy, History, Share2, CircleSlash, Heart, Trash2 } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp, query, orderBy, limit, getDocs } from 'firebase/firestore';
 
@@ -97,6 +97,7 @@ export default function LottoPage() {
           sets: setsObject,
           timestamp: new Date().toISOString(),
           id: Date.now().toString(), // Local ID
+          isFavorite: false, // New: favorite flag
         };
 
         // 2. Update Local History
@@ -128,7 +129,16 @@ export default function LottoPage() {
   };
 
   const deleteMyRecord = (id: string) => {
+    if (!confirm('기록을 삭제하시겠습니까?')) return;
     const updated = myHistory.filter(item => item.id !== id);
+    setMyHistory(updated);
+    localStorage.setItem('my_lotto_history', JSON.stringify(updated));
+  };
+
+  const toggleFavorite = (id: string) => {
+    const updated = myHistory.map(item => 
+      item.id === id ? { ...item, isFavorite: !item.isFavorite } : item
+    );
     setMyHistory(updated);
     localStorage.setItem('my_lotto_history', JSON.stringify(updated));
   };
@@ -461,55 +471,85 @@ export default function LottoPage() {
                 </div>
               )
             ) : (
-              /* My History Tab */
-              myHistory.length > 0 ? (
-                myHistory.map((record, i) => (
-                  <motion.div 
-                    layout
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    key={record.id} 
-                    className="bg-indigo-500/5 rounded-2xl p-4 border border-indigo-500/20 flex flex-col gap-3 relative group"
-                  >
-                    <button 
-                      onClick={() => deleteMyRecord(record.id)}
-                      className="absolute top-4 right-4 text-gray-600 hover:text-red-400 transition-colors p-1"
-                      title="삭제"
+              /* My History Tab - Filtered Logic */
+              (() => {
+                const favorites = myHistory.filter(item => item.isFavorite);
+                const nonFavorites = myHistory.filter(item => !item.isFavorite).slice(0, 3);
+                const combined = [...favorites, ...nonFavorites];
+
+                return combined.length > 0 ? (
+                  combined.map((record, i) => (
+                    <motion.div 
+                      layout
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      key={record.id} 
+                      className={`rounded-2xl p-4 border transition-all relative group ${
+                        record.isFavorite 
+                          ? 'bg-pink-500/10 border-pink-500/30' 
+                          : 'bg-indigo-500/5 border-indigo-500/20'
+                      }`}
                     >
-                      <CircleSlash size={14} />
-                    </button>
+                      {/* Controls Area */}
+                      <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
+                        <button 
+                          onClick={() => toggleFavorite(record.id)}
+                          className={`p-1.5 rounded-full transition-all ${
+                            record.isFavorite 
+                              ? 'text-pink-500 bg-pink-500/20' 
+                              : 'text-gray-600 hover:text-pink-400 hover:bg-white/5'
+                          }`}
+                          title={record.isFavorite ? "찜 해제" : "찜하기"}
+                        >
+                          <Heart size={16} fill={record.isFavorite ? "currentColor" : "none"} />
+                        </button>
+                        <button 
+                          onClick={() => deleteMyRecord(record.id)}
+                          className="p-1.5 rounded-full text-gray-600 hover:text-red-400 hover:bg-white/5 transition-all"
+                          title="삭제"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
 
-                    <div className="text-xs text-indigo-300 flex items-center gap-2">
-                      <span className="bg-indigo-500 text-white px-2 py-0.5 rounded text-[8px] font-black">MY</span>
-                      <span className="font-bold">내 생성 기록</span>
-                      <span className="text-gray-500 ml-auto mr-6 text-[10px]">{new Date(record.timestamp).toLocaleString()}</span>
-                    </div>
+                      <div className="text-xs flex items-center gap-2 mb-3">
+                        {record.isFavorite ? (
+                          <span className="bg-gradient-to-r from-pink-500 to-rose-500 text-white px-2 py-0.5 rounded text-[8px] font-black shadow-lg shadow-pink-500/20">FAVORITE</span>
+                        ) : (
+                          <span className="bg-indigo-500 text-white px-2 py-0.5 rounded text-[8px] font-black">RECENT</span>
+                        )}
+                        <span className={`font-bold ${record.isFavorite ? 'text-pink-300' : 'text-indigo-300'}`}>
+                          {record.isFavorite ? '찜한 행운 번호' : '최근 생성 기록'}
+                        </span>
+                        <span className="text-gray-500 ml-auto mr-16 text-[9px]">{new Date(record.timestamp).toLocaleString()}</span>
+                      </div>
 
-                    <div className="flex flex-col gap-3">
-                      {Object.entries(record.sets).map(([key, set]: [string, any], setIdx) => (
-                        <div key={key} className="flex items-center gap-3 p-2 rounded-lg bg-black/20">
-                          <span className="text-[10px] text-gray-500 font-bold min-w-[35px]"># {setIdx + 1}</span>
-                          <div className="flex flex-wrap gap-1.5">
-                            {set.map((n: number, j: number) => (
-                              <span key={j} className={`w-7 h-7 flex items-center justify-center rounded-full text-[10px] font-bold ${getBallColorClass(n)} shadow-sm`}>
-                                {n}
-                              </span>
-                            ))}
+                      <div className="flex flex-col gap-3">
+                        {Object.entries(record.sets).map(([key, set]: [string, any], setIdx) => (
+                          <div key={key} className="flex items-center gap-3 p-2 rounded-lg bg-black/30 border border-white/5">
+                            <span className="text-[10px] text-gray-500 font-bold min-w-[35px]"># {setIdx + 1}</span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {set.map((n: number, j: number) => (
+                                <span key={j} className={`w-7 h-7 flex items-center justify-center rounded-full text-[10px] font-bold ${getBallColorClass(n)} shadow-sm`}>
+                                  {n}
+                                </span>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
+                    </motion.div>
+                  ))
+                ) : (
+                  <div className="text-gray-500 text-sm text-center py-12 flex flex-col items-center gap-4 border-2 border-dashed border-white/5 rounded-3xl">
+                    <Sparkles size={40} className="text-white/10" />
+                    <div>
+                      <p className="font-bold text-gray-400">행운의 기록이 비어있습니다.</p>
+                      <p className="text-[10px] mt-1 text-gray-600">번호를 생성하고 마음에 드는 번호를 찜해보세요!</p>
                     </div>
-                  </motion.div>
-                ))
-              ) : (
-                <div className="text-gray-500 text-sm text-center py-12 flex flex-col items-center gap-4 border-2 border-dashed border-white/5 rounded-3xl">
-                  <Sparkles size={40} className="text-white/10" />
-                  <div>
-                    <p className="font-bold text-gray-400">나의 기록이 아직 없네요!</p>
-                    <p className="text-[10px] mt-1 text-gray-600">상단의 [다시 생성] 버튼을 눌러 번호를 만들어보세요.</p>
                   </div>
-                </div>
-              )
+                );
+              })()
             )}
           </div>
         </div>
