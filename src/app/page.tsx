@@ -34,8 +34,17 @@ export default function LottoPage() {
   const [error, setError] = useState<string | null>(null);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [nextDrawDate, setNextDrawDate] = useState<string>('');
+  const [filterMode, setFilterMode] = useState<'all' | 'mine'>('all');
+  const [myHistory, setMyHistory] = useState<any[]>([]);
 
+  // Initialize and Load Data
   useEffect(() => {
+    // Load Personal History from LocalStorage
+    const saved = localStorage.getItem('my_lotto_history');
+    if (saved) {
+      setMyHistory(JSON.parse(saved));
+    }
+
     const calculateNextDraw = () => {
       const now = new Date();
       const currentDay = now.getDay();
@@ -84,7 +93,18 @@ export default function LottoPage() {
         // 1. Get current history first (before adding new one)
         await fetchHistory();
 
-        // 2. Add new doc to DB
+        const newRecord = {
+          sets: setsObject,
+          timestamp: new Date().toISOString(),
+          id: Date.now().toString(), // Local ID
+        };
+
+        // 2. Update Local History
+        const updatedLocal = [newRecord, ...myHistory].slice(0, 10); // Keep last 10 locally
+        setMyHistory(updatedLocal);
+        localStorage.setItem('my_lotto_history', JSON.stringify(updatedLocal));
+
+        // 3. Add to Global Firebase DB
         await addDoc(collection(db, "lotto_history"), {
           sets: setsObject,
           timestamp: serverTimestamp(),
@@ -105,6 +125,12 @@ export default function LottoPage() {
     } catch (e) {
       console.log("History fetch ignored (Firebase not configured)");
     }
+  };
+
+  const deleteMyRecord = (id: string) => {
+    const updated = myHistory.filter(item => item.id !== id);
+    setMyHistory(updated);
+    localStorage.setItem('my_lotto_history', JSON.stringify(updated));
   };
 
   const handleShare = async () => {
@@ -345,77 +371,145 @@ export default function LottoPage() {
         )}
 
         {/* History / Info Section */}
-        <div className="mt-12 glass-card p-8 border-indigo-500/20 animate-glow">
-          <div className="flex items-center gap-2 mb-6 text-indigo-300 font-bold">
-            <History size={20} />
-            <span>과거 생성 이력 (가장 최근 3회 기록)</span>
+        <div className="mt-12 glass-card p-1 md:p-8 border-indigo-500/20 animate-glow overflow-hidden">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center p-6 pb-2 gap-4">
+            <div className="flex items-center gap-2 text-indigo-300 font-bold">
+              <History size={20} />
+              <span>행운 생성 이력 확인</span>
+            </div>
+            
+            <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
+              <button 
+                onClick={() => setFilterMode('all')}
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterMode === 'all' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+              >
+                전체 행운
+              </button>
+              <button 
+                onClick={() => setFilterMode('mine')}
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterMode === 'mine' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+              >
+                나의 행운
+              </button>
+            </div>
           </div>
-          
-          <div className="flex flex-col gap-4">
-            {history.length > 0 ? (
-              history.map((record, i) => (
-                <motion.div 
-                  layout
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  key={i} 
-                  onClick={() => setExpandedIndex(expandedIndex === i ? null : i)}
-                  className="bg-white/5 rounded-2xl p-4 border border-white/5 flex flex-col gap-3 cursor-pointer transition-all hover:bg-white/10 hover:border-indigo-500/30"
-                >
-                  <div className="text-xs text-gray-400 flex justify-between items-center">
-                    <span className="font-bold flex items-center gap-1">
-                      <Trophy size={12} className="text-yellow-500" /> 기록 #{history.length - i}
-                    </span>
-                    <span>{record.timestamp?.toDate().toLocaleString() || "방금 전"}</span>
-                  </div>
 
-                  <AnimatePresence>
-                    {expandedIndex === i ? (
-                      <motion.div 
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="flex flex-col gap-3 overflow-hidden"
-                      >
-                        {Object.entries(record.sets).map(([key, set]: [string, any], setIdx) => (
-                          <div key={key} className="flex flex-col gap-1.5 p-2 rounded-lg bg-black/20">
-                            <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-tighter">SET {setIdx + 1}</span>
-                            <div className="flex flex-wrap gap-1.5">
-                              {set.map((n: number, j: number) => (
-                                <span key={j} className={`w-7 h-7 flex items-center justify-center rounded-full text-[10px] font-bold ${getBallColorClass(n)} shadow-sm`}>
-                                  {n}
-                                </span>
-                              ))}
+          <div className="p-6 pt-2 flex flex-col gap-4">
+            {filterMode === 'all' ? (
+              history.length > 0 ? (
+                history.map((record, i) => (
+                  <motion.div 
+                    layout
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    key={i} 
+                    onClick={() => setExpandedIndex(expandedIndex === i ? null : i)}
+                    className="bg-white/5 rounded-2xl p-4 border border-white/5 flex flex-col gap-3 cursor-pointer transition-all hover:bg-white/10 hover:border-indigo-500/30"
+                  >
+                    <div className="text-xs text-gray-400 flex justify-between items-center">
+                      <span className="font-bold flex items-center gap-1">
+                        <Trophy size={12} className="text-yellow-500" /> 전체 기록 #{history.length - i}
+                      </span>
+                      <span>{record.timestamp?.toDate().toLocaleString() || "방금 전"}</span>
+                    </div>
+
+                    <AnimatePresence>
+                      {expandedIndex === i ? (
+                        <motion.div 
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="flex flex-col gap-3 overflow-hidden"
+                        >
+                          {Object.entries(record.sets).map(([key, set]: [string, any], setIdx) => (
+                            <div key={key} className="flex flex-col gap-1.5 p-2 rounded-lg bg-black/20">
+                              <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-tighter">SET {setIdx + 1}</span>
+                              <div className="flex flex-wrap gap-1.5">
+                                {set.map((n: number, j: number) => (
+                                  <span key={j} className={`w-7 h-7 flex items-center justify-center rounded-full text-[10px] font-bold ${getBallColorClass(n)} shadow-sm`}>
+                                    {n}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </motion.div>
-                    ) : (
-                      <div className="flex flex-wrap gap-2 items-center">
-                        {/* Preview of first set only */}
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          {(Object.values(record.sets)[0] as number[]).slice(0, 6).map((n: number, j: number) => (
-                            <span key={j} className="text-[10px] w-6 h-6 flex items-center justify-center rounded-full bg-white/10 text-indigo-200 border border-white/5">
-                              {n}
-                            </span>
                           ))}
-                          <span className="text-[10px] text-gray-600">+</span>
-                          <span className="text-[10px] w-6 h-6 flex items-center justify-center rounded-full bg-indigo-500/20 text-indigo-100 border border-indigo-500/30">
-                            {(Object.values(record.sets)[0] as number[])[6] || "?"}
+                        </motion.div>
+                      ) : (
+                        <div className="flex flex-wrap gap-2 items-center">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {(Object.values(record.sets)[0] as number[]).slice(0, 6).map((n: number, j: number) => (
+                              <span key={j} className="text-[10px] w-6 h-6 flex items-center justify-center rounded-full bg-white/10 text-indigo-200 border border-white/5">
+                                {n}
+                              </span>
+                            ))}
+                            <span className="text-[10px] text-gray-600">+</span>
+                            <span className="text-[10px] w-6 h-6 flex items-center justify-center rounded-full bg-indigo-500/20 text-indigo-100 border border-indigo-500/30">
+                              {(Object.values(record.sets)[0] as number[])[6] || "?"}
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-indigo-400 font-bold">
+                            + 상세 보기 (클릭)
                           </span>
                         </div>
-                        <span className="text-[10px] text-indigo-400 font-medium font-bold">
-                          + {Object.keys(record.sets).length - 1}개 세트 상세 보기 (클릭)
-                        </span>
-                      </div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              ))
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                ))
+              ) : (
+                <div className="text-gray-500 text-sm text-center py-8">
+                  아직 저장된 전체 이력이 없습니다.
+                </div>
+              )
             ) : (
-              <div className="text-gray-500 text-sm text-center py-4">
-                아직 저장된 이력이 없습니다. 번호를 생성해 보세요!
-              </div>
+              /* My History Tab */
+              myHistory.length > 0 ? (
+                myHistory.map((record, i) => (
+                  <motion.div 
+                    layout
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    key={record.id} 
+                    className="bg-indigo-500/5 rounded-2xl p-4 border border-indigo-500/20 flex flex-col gap-3 relative group"
+                  >
+                    <button 
+                      onClick={() => deleteMyRecord(record.id)}
+                      className="absolute top-4 right-4 text-gray-600 hover:text-red-400 transition-colors p-1"
+                      title="삭제"
+                    >
+                      <CircleSlash size={14} />
+                    </button>
+
+                    <div className="text-xs text-indigo-300 flex items-center gap-2">
+                      <span className="bg-indigo-500 text-white px-2 py-0.5 rounded text-[8px] font-black">MY</span>
+                      <span className="font-bold">내 생성 기록</span>
+                      <span className="text-gray-500 ml-auto mr-6 text-[10px]">{new Date(record.timestamp).toLocaleString()}</span>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      {Object.entries(record.sets).map(([key, set]: [string, any], setIdx) => (
+                        <div key={key} className="flex items-center gap-3 p-2 rounded-lg bg-black/20">
+                          <span className="text-[10px] text-gray-500 font-bold min-w-[35px]"># {setIdx + 1}</span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {set.map((n: number, j: number) => (
+                              <span key={j} className={`w-7 h-7 flex items-center justify-center rounded-full text-[10px] font-bold ${getBallColorClass(n)} shadow-sm`}>
+                                {n}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                ))
+              ) : (
+                <div className="text-gray-500 text-sm text-center py-12 flex flex-col items-center gap-4 border-2 border-dashed border-white/5 rounded-3xl">
+                  <Sparkles size={40} className="text-white/10" />
+                  <div>
+                    <p className="font-bold text-gray-400">나의 기록이 아직 없네요!</p>
+                    <p className="text-[10px] mt-1 text-gray-600">상단의 [다시 생성] 버튼을 눌러 번호를 만들어보세요.</p>
+                  </div>
+                </div>
+              )
             )}
           </div>
         </div>
